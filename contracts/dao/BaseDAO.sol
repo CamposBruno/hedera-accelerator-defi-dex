@@ -16,6 +16,7 @@ abstract contract BaseDAO is IErrors, RoleBasedAccess {
         string infoUrl;
         string description;
         string[] webLinks;
+        address treasuryAccount;
     }
 
     DAOInfo private daoInfo;
@@ -33,7 +34,8 @@ abstract contract BaseDAO is IErrors, RoleBasedAccess {
         string memory _logoUrl,
         string memory _infoUrl,
         string memory _description,
-        string[] memory _webLinks
+        string[] memory _webLinks,
+        address treasuryAccount
     ) public onlyInitializing {
         if (address(_admin) == address(0)) {
             revert InvalidInput("BaseDAO: admin address is zero");
@@ -45,7 +47,8 @@ abstract contract BaseDAO is IErrors, RoleBasedAccess {
             _logoUrl,
             _infoUrl,
             _description,
-            _webLinks
+            _webLinks,
+            treasuryAccount
         );
     }
 
@@ -58,24 +61,26 @@ abstract contract BaseDAO is IErrors, RoleBasedAccess {
         string memory _logoUrl,
         string memory _infoUrl,
         string memory _description,
-        string[] memory _webLinks
+        string[] memory _webLinks,
+        address treasuryAccount
     ) public onlyRole(DAO_ADMIN) {
         updateDaoInfoInternally(
             _name,
             _logoUrl,
             _infoUrl,
             _description,
-            _webLinks
+            _webLinks,
+            treasuryAccount
         );
     }
-
 
     function updateDaoInfoInternally(
         string memory _name,
         string memory _logoUrl,
         string memory _infoUrl,
         string memory _description,
-        string[] memory _webLinks
+        string[] memory _webLinks,
+        address treasuryAccount
     ) private {
         if (bytes(_name).length == 0) {
             revert InvalidInput("BaseDAO: name is empty");
@@ -98,6 +103,12 @@ abstract contract BaseDAO is IErrors, RoleBasedAccess {
             }
         }
         daoInfo.webLinks = _webLinks;
+
+        if (treasuryAccount == address(0)) {
+            revert InvalidInput("BaseDAO: invalid treasury account");
+        }
+
+        daoInfo.treasuryAccount = treasuryAccount;
 
         daoInfo.logoUrl = _logoUrl;
         emit DAOInfoUpdated(daoInfo);

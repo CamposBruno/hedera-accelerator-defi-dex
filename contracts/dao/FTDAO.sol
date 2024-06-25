@@ -17,7 +17,8 @@ contract FTDAO is BaseDAO, ISharedModel {
             _inputs.logoUrl,
             _inputs.infoUrl,
             _inputs.description,
-            _inputs.webLinks
+            _inputs.webLinks,
+            _inputs.treasuryAccount
         );
     }
 }

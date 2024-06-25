@@ -51,6 +51,7 @@ contract MultiSigDAO is IEvents, BaseDAO {
         string memory _infoUrl,
         string memory _description,
         string[] memory _webLinks,
+        address _treasuryAccount,
         HederaGnosisSafe _hederaGnosisSafe,
         IHederaService _hederaService,
         HederaMultiSend _multiSend,
@@ -60,7 +61,15 @@ contract MultiSigDAO is IEvents, BaseDAO {
         hederaGnosisSafe = _hederaGnosisSafe;
         multiSend = _multiSend;
         iSystemRoleBasedAccess = _iSystemRoleBasedAccess;
-        __BaseDAO_init(_admin, _name, _logoUrl, _infoUrl, _description, _webLinks);
+        __BaseDAO_init(
+            _admin,
+            _name,
+            _logoUrl,
+            _infoUrl,
+            _description,
+            _webLinks,
+            _treasuryAccount
+        );
         emit LogicUpdated(address(0), address(hederaService), HederaService);
         emit LogicUpdated(address(0), address(multiSend), MultiSend);
         emit LogicUpdated(address(0), address(hederaGnosisSafe), HederaSafe);

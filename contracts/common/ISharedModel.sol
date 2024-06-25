@@ -14,6 +14,7 @@ interface ISharedModel {
         bool isPrivate;
         string description;
         string[] webLinks;
+        address treasuryAccount;
     }
 
     struct MultiSigCreateDAOInputs {
@@ -26,12 +27,14 @@ interface ISharedModel {
         bool isPrivate;
         string description;
         string[] webLinks;
+        address treasuryAccount;
     }
 
     struct GovernorConfig {
         uint256 votingDelay;
         uint256 votingPeriod;
         uint256 quorumThresholdInBsp;
+        address treasuryAccount;
     }
 
     struct FeeConfig {
