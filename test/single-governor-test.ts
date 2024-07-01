@@ -69,8 +69,15 @@ describe("Governor Tests", function () {
     const ftAssetsHolder = await TestHelper.deployAssetsHolder();
     const nftAssetsHolder = await TestHelper.deployAssetsHolder();
 
+    const daoTreasure = await TestHelper.getDAOTreasure();
+
     const FT_ARGS = [
-      [VOTING_DELAY_IN_SECONDS, VOTING_PERIOD_IN_SECONDS, QUORUM_THRESHOLD_BSP],
+      [
+        VOTING_DELAY_IN_SECONDS,
+        VOTING_PERIOD_IN_SECONDS,
+        QUORUM_THRESHOLD_BSP,
+        daoTreasure.address,
+      ],
       ftTokenHolder.address,
       ftAssetsHolder.address,
       hederaService.address,
@@ -78,7 +85,12 @@ describe("Governor Tests", function () {
     ];
 
     const NFT_ARGS = [
-      [VOTING_DELAY_IN_SECONDS, VOTING_PERIOD_IN_SECONDS, QUORUM_THRESHOLD_BSP],
+      [
+        VOTING_DELAY_IN_SECONDS,
+        VOTING_PERIOD_IN_SECONDS,
+        QUORUM_THRESHOLD_BSP,
+        daoTreasure.address,
+      ],
       nftTokenHolder.address,
       nftAssetsHolder.address,
       hederaService.address,
@@ -123,6 +135,8 @@ describe("Governor Tests", function () {
       governorTestProxy,
       systemUsersSigners,
       roleBasedAccess,
+
+      daoTreasure,
     };
   }
 
@@ -835,13 +849,18 @@ describe("Governor Tests", function () {
     });
 
     it("Verify contract should initialize quorum threshold value with 500 when user passed 0 as threshold", async function () {
-      const { ftTokenHolder, hederaService, roleBasedAccess } =
+      const { ftTokenHolder, hederaService, roleBasedAccess, daoTreasure } =
         await loadFixture(deployFixture);
 
       const ftAssetsHolder = await TestHelper.deployAssetsHolder();
 
       const GOVERNOR_ARGS = [
-        [VOTING_DELAY_IN_SECONDS, VOTING_PERIOD_IN_SECONDS, 0],
+        [
+          VOTING_DELAY_IN_SECONDS,
+          VOTING_PERIOD_IN_SECONDS,
+          0,
+          daoTreasure.address,
+        ],
         ftTokenHolder.address,
         ftAssetsHolder.address,
         hederaService.address,
