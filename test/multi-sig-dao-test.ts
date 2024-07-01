@@ -92,6 +92,7 @@ describe("MultiSig tests", function () {
     infoUrl: string,
     description: string,
     webLinks: string[],
+    treasuryAccount: string,
   ) {
     const lastEvent = (
       await TestHelper.readEvents(txn, ["DAOInfoUpdated"])
@@ -106,6 +107,7 @@ describe("MultiSig tests", function () {
     expect(daoInfo.infoUrl).equals(infoUrl);
     expect(daoInfo.description).equals(description);
     expect(daoInfo.webLinks.join(",")).equals(webLinks.join(","));
+    expect(daoInfo.treasuryAccount).equals(treasuryAccount);
   }
 
   async function proposeTransaction(
@@ -200,6 +202,7 @@ describe("MultiSig tests", function () {
     const daoAdminOne = await TestHelper.getDAOAdminOne();
     const tokenInstance = await TestHelper.deployERC20Mock();
     const nftTokenInstance = await TestHelper.deployERC721Mock(signers[0]);
+    const daoTreasure = await TestHelper.getDAOTreasure();
 
     const systemUsersSigners = await TestHelper.systemUsersSigners();
     const systemRoleBasedAccess = (
@@ -258,6 +261,7 @@ describe("MultiSig tests", function () {
       INFO_URL,
       DESCRIPTION,
       WEB_LINKS,
+      daoTreasure.address,
       hederaGnosisSafeProxyInstance,
       hederaService.address,
       multiSend.address,
@@ -327,6 +331,7 @@ describe("MultiSig tests", function () {
       systemUsersSigners,
       multiSendProxy,
       createDAOFeeConfigData,
+      daoTreasure,
     };
   }
 
@@ -496,6 +501,7 @@ describe("MultiSig tests", function () {
         multiSigDAOFactoryInstance,
         doaSignersAddresses,
         createDAOFeeConfigData,
+        daoTreasure,
       } = await loadFixture(deployFixture);
       const ARGS = [
         TestHelper.ZERO_ADDRESS,
@@ -507,6 +513,7 @@ describe("MultiSig tests", function () {
         true,
         DESCRIPTION,
         WEB_LINKS,
+        daoTreasure.address,
       ];
       await expect(
         multiSigDAOFactoryInstance.createDAO(ARGS, {
@@ -518,8 +525,12 @@ describe("MultiSig tests", function () {
     });
 
     it("Verify createDAO should be reverted when info url is empty", async function () {
-      const { multiSigDAOFactoryInstance, doaSignersAddresses, daoAdminOne } =
-        await loadFixture(deployFixture);
+      const {
+        multiSigDAOFactoryInstance,
+        doaSignersAddresses,
+        daoAdminOne,
+        daoTreasure,
+      } = await loadFixture(deployFixture);
       const ARGS = [
         daoAdminOne.address,
         DAO_NAME,
@@ -530,6 +541,7 @@ describe("MultiSig tests", function () {
         true,
         DESCRIPTION,
         WEB_LINKS,
+        daoTreasure.address,
       ];
       await expect(multiSigDAOFactoryInstance.createDAO(ARGS))
         .revertedWithCustomError(multiSigDAOFactoryInstance, "InvalidInput")
@@ -537,7 +549,7 @@ describe("MultiSig tests", function () {
     });
 
     it("Verify updating multisig dao info should be succeeded and emit event", async function () {
-      const { multiSigDAOInstance, daoAdminOne } =
+      const { multiSigDAOInstance, daoAdminOne, daoTreasure } =
         await loadFixture(deployFixture);
 
       const UPDATED_DAO_NAME = DAO_NAME + "_1";
@@ -545,6 +557,7 @@ describe("MultiSig tests", function () {
       const UPDATED_INFO_URL = INFO_URL + "_1";
       const UPDATED_DESCRIPTION = DESCRIPTION + "_1";
       const UPDATED_WEB_LINKS = ["A", "B"];
+      const UPDATED_TREASURY = daoTreasure.address;
 
       const txn = await multiSigDAOInstance
         .connect(daoAdminOne)
@@ -554,6 +567,7 @@ describe("MultiSig tests", function () {
           UPDATED_INFO_URL,
           UPDATED_DESCRIPTION,
           UPDATED_WEB_LINKS,
+          UPDATED_TREASURY,
         );
 
       await verifyDAOInfoUpdatedEvent(
@@ -564,6 +578,7 @@ describe("MultiSig tests", function () {
         UPDATED_INFO_URL,
         UPDATED_DESCRIPTION,
         UPDATED_WEB_LINKS,
+        UPDATED_TREASURY,
       );
     });
 
@@ -573,6 +588,7 @@ describe("MultiSig tests", function () {
         doaSignersAddresses,
         daoAdminOne,
         createDAOFeeConfigData,
+        daoTreasure,
       } = await loadFixture(deployFixture);
       const ARGS = [
         daoAdminOne.address,
@@ -584,6 +600,7 @@ describe("MultiSig tests", function () {
         true,
         DESCRIPTION,
         WEB_LINKS,
+        daoTreasure.address,
       ];
       await expect(
         multiSigDAOFactoryInstance.createDAO(ARGS, {
@@ -600,6 +617,7 @@ describe("MultiSig tests", function () {
         doaSignersAddresses,
         daoAdminOne,
         createDAOFeeConfigData,
+        daoTreasure,
       } = await loadFixture(deployFixture);
 
       const currentList = await multiSigDAOFactoryInstance.getDAOs();
@@ -615,6 +633,7 @@ describe("MultiSig tests", function () {
         false,
         DESCRIPTION,
         WEB_LINKS,
+        daoTreasure.address,
       ];
 
       const txn = await multiSigDAOFactoryInstance.createDAO(ARGS, {
@@ -640,6 +659,7 @@ describe("MultiSig tests", function () {
         hederaGnosisSafeProxyFactoryInstance,
         hederaService,
         multiSend,
+        daoTreasure,
       } = await loadFixture(deployFixture);
 
       const createDAOFeeConfigData = {
@@ -672,6 +692,7 @@ describe("MultiSig tests", function () {
         true,
         DESCRIPTION,
         WEB_LINKS,
+        daoTreasure.address,
       ];
 
       await expect(
@@ -696,6 +717,7 @@ describe("MultiSig tests", function () {
         hederaService,
         multiSend,
         tokenInstance,
+        daoTreasure,
       } = await loadFixture(deployFixture);
 
       const createDAOFeeConfigData = {
@@ -728,6 +750,7 @@ describe("MultiSig tests", function () {
         true,
         DESCRIPTION,
         WEB_LINKS,
+        daoTreasure.address,
       ];
 
       await tokenInstance.setUserBalance(
@@ -846,6 +869,7 @@ describe("MultiSig tests", function () {
         createDAOFeeConfigData,
         tokenInstance,
         signers,
+        daoTreasure,
       } = await loadFixture(deployFixture);
 
       const currentList = await multiSigDAOFactoryInstance.getDAOs();
@@ -861,6 +885,7 @@ describe("MultiSig tests", function () {
         true,
         DESCRIPTION,
         WEB_LINKS,
+        daoTreasure.address,
       ];
       await tokenInstance.setUserBalance(
         signers[0].address,
@@ -1474,13 +1499,20 @@ describe("MultiSig tests", function () {
     });
 
     it("Verify updating dao info should be reverted for empty info url", async function () {
-      const { multiSigDAOInstance, daoAdminOne } =
+      const { multiSigDAOInstance, daoAdminOne, daoTreasure } =
         await loadFixture(deployFixture);
 
       await expect(
         multiSigDAOInstance
           .connect(daoAdminOne)
-          .updateDaoInfo(DAO_NAME, LOGO_URL, "", DESCRIPTION, WEB_LINKS),
+          .updateDaoInfo(
+            DAO_NAME,
+            LOGO_URL,
+            "",
+            DESCRIPTION,
+            WEB_LINKS,
+            daoTreasure.address,
+          ),
       )
         .revertedWithCustomError(multiSigDAOInstance, "InvalidInput")
         .withArgs("BaseDAO: info url is empty");

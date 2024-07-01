@@ -66,6 +66,7 @@ export async function verifyDAOInfoUpdatedEvent(
   infoUrl: string,
   description: string,
   webLinks: string[],
+  treasuryAccount: string,
 ) {
   const lastEvent = (
     await TestHelper.readEvents(txn, ["DAOInfoUpdated"])
@@ -80,6 +81,7 @@ export async function verifyDAOInfoUpdatedEvent(
   expect(daoInfo.infoUrl).equals(infoUrl);
   expect(daoInfo.description).equals(description);
   expect(daoInfo.webLinks.join(",")).equals(webLinks.join(","));
+  expect(daoInfo.treasuryAccount).equals(treasuryAccount);
 }
 
 export async function verifyQuorumThresholdSetEvent(

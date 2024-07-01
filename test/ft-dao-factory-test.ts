@@ -72,6 +72,7 @@ describe("FT-Governance-DAO tests", function () {
       isPrivate: false,
       description: DESCRIPTION,
       webLinks: WEB_LINKS,
+      treasuryAccount: daoTreasure.address,
       feeConfig: Object.values(proposalCreationFeeConfig),
     };
 
@@ -444,7 +445,7 @@ describe("FT-Governance-DAO tests", function () {
     });
 
     it("Verify updating dao info should be reverted for empty info-url", async function () {
-      const { factory, CREATE_DAO_ARGS, daoAdminOne } =
+      const { factory, CREATE_DAO_ARGS, daoAdminOne, daoTreasure } =
         await loadFixture(deployFixture);
       const txn = await factory.createDAO(Object.values(CREATE_DAO_ARGS));
       const info = await verifyDAOCreatedEvent(txn);
@@ -452,7 +453,14 @@ describe("FT-Governance-DAO tests", function () {
       await expect(
         info.dao
           .connect(daoAdminOne)
-          .updateDaoInfo(DAO_NAME, LOGO_URL, "", DESCRIPTION, WEB_LINKS),
+          .updateDaoInfo(
+            DAO_NAME,
+            LOGO_URL,
+            "",
+            DESCRIPTION,
+            WEB_LINKS,
+            daoTreasure.address,
+          ),
       )
         .revertedWithCustomError(info.dao, "InvalidInput")
         .withArgs("BaseDAO: info url is empty");
@@ -461,7 +469,7 @@ describe("FT-Governance-DAO tests", function () {
 
   describe("BaseDAO contract tests", function () {
     it("Verify contract should be reverted if __BaseDAO_init called from outside", async function () {
-      const { factory, CREATE_DAO_ARGS, daoAdminOne } =
+      const { factory, CREATE_DAO_ARGS, daoAdminOne, daoTreasure } =
         await loadFixture(deployFixture);
       const txn = await factory.createDAO(Object.values(CREATE_DAO_ARGS));
       const info = await verifyDAOCreatedEvent(txn);
@@ -473,12 +481,13 @@ describe("FT-Governance-DAO tests", function () {
           INFO_URL,
           DESCRIPTION,
           WEB_LINKS,
+          daoTreasure.address,
         ),
       ).revertedWith("Initializable: contract is not initializing");
     });
 
     it("Verify updating dao info should be reverted for non-admin user", async function () {
-      const { factory, CREATE_DAO_ARGS, daoAdminTwo } =
+      const { factory, CREATE_DAO_ARGS, daoAdminTwo, daoTreasure } =
         await loadFixture(deployFixture);
       const txn = await factory.createDAO(Object.values(CREATE_DAO_ARGS));
       const info = await verifyDAOCreatedEvent(txn);
@@ -486,12 +495,19 @@ describe("FT-Governance-DAO tests", function () {
       await expect(
         info.dao
           .connect(daoAdminTwo)
-          .updateDaoInfo(DAO_NAME, LOGO_URL, INFO_URL, DESCRIPTION, WEB_LINKS),
+          .updateDaoInfo(
+            DAO_NAME,
+            LOGO_URL,
+            INFO_URL,
+            DESCRIPTION,
+            WEB_LINKS,
+            daoTreasure.address,
+          ),
       ).reverted;
     });
 
     it("Verify updating dao info should be reverted for invalid CREATE_DAO_ARGS", async function () {
-      const { factory, CREATE_DAO_ARGS, daoAdminOne } =
+      const { factory, CREATE_DAO_ARGS, daoAdminOne, daoTreasure } =
         await loadFixture(deployFixture);
       const txn = await factory.createDAO(Object.values(CREATE_DAO_ARGS));
       const info = await verifyDAOCreatedEvent(txn);
@@ -499,7 +515,14 @@ describe("FT-Governance-DAO tests", function () {
       await expect(
         info.dao
           .connect(daoAdminOne)
-          .updateDaoInfo("", LOGO_URL, INFO_URL, DESCRIPTION, WEB_LINKS),
+          .updateDaoInfo(
+            "",
+            LOGO_URL,
+            INFO_URL,
+            DESCRIPTION,
+            WEB_LINKS,
+            daoTreasure.address,
+          ),
       )
         .revertedWithCustomError(info.dao, "InvalidInput")
         .withArgs("BaseDAO: name is empty");
@@ -507,7 +530,14 @@ describe("FT-Governance-DAO tests", function () {
       await expect(
         info.dao
           .connect(daoAdminOne)
-          .updateDaoInfo(DAO_NAME, LOGO_URL, INFO_URL, "", WEB_LINKS),
+          .updateDaoInfo(
+            DAO_NAME,
+            LOGO_URL,
+            INFO_URL,
+            "",
+            WEB_LINKS,
+            daoTreasure.address,
+          ),
       )
         .revertedWithCustomError(info.dao, "InvalidInput")
         .withArgs("BaseDAO: description is empty");
@@ -515,17 +545,21 @@ describe("FT-Governance-DAO tests", function () {
       await expect(
         info.dao
           .connect(daoAdminOne)
-          .updateDaoInfo(DAO_NAME, LOGO_URL, INFO_URL, DESCRIPTION, [
-            ...WEB_LINKS,
-            "",
-          ]),
+          .updateDaoInfo(
+            DAO_NAME,
+            LOGO_URL,
+            INFO_URL,
+            DESCRIPTION,
+            [...WEB_LINKS, ""],
+            daoTreasure.address,
+          ),
       )
         .revertedWithCustomError(info.dao, "InvalidInput")
         .withArgs("BaseDAO: invalid link");
     });
 
     it("Verify updating dao info should be succeeded for valid CREATE_DAO_ARGS", async function () {
-      const { factory, CREATE_DAO_ARGS, daoAdminOne } =
+      const { factory, CREATE_DAO_ARGS, daoAdminOne, daoTreasure } =
         await loadFixture(deployFixture);
       const txn0 = await factory.createDAO(Object.values(CREATE_DAO_ARGS));
       const info = await verifyDAOCreatedEvent(txn0);
@@ -535,6 +569,7 @@ describe("FT-Governance-DAO tests", function () {
       const UPDATED_INFO_URL = INFO_URL + "_1";
       const UPDATED_DESCRIPTION = DESCRIPTION + "_1";
       const UPDATED_WEB_LINKS = ["A", "B"];
+      const UPDATED_TREASURY = daoTreasure.address;
       const txn = await info.dao
         .connect(daoAdminOne)
         .updateDaoInfo(
@@ -543,6 +578,7 @@ describe("FT-Governance-DAO tests", function () {
           UPDATED_INFO_URL,
           UPDATED_DESCRIPTION,
           UPDATED_WEB_LINKS,
+          UPDATED_TREASURY,
         );
 
       await verifyDAOInfoUpdatedEvent(
@@ -553,6 +589,7 @@ describe("FT-Governance-DAO tests", function () {
         UPDATED_INFO_URL,
         UPDATED_DESCRIPTION,
         UPDATED_WEB_LINKS,
+        UPDATED_TREASURY,
       );
     });
 
