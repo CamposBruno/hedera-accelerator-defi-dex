@@ -697,6 +697,22 @@ describe("Governor Tests", function () {
       expect(await response.isVoteSucceeded).equals(false);
     });
 
+    it("Verify quorum, do not account treasury balance", async function () {
+      const { ftGovernor, daoTreasure, ftAsGodToken } =
+        await loadFixture(deployFixture);
+
+      const quorum1 = await ftGovernor.quorum(0);
+
+      await ftAsGodToken.setTotal(
+        (await ftAsGodToken.totalSupply()).add(100_000_000),
+      );
+      await ftAsGodToken.setUserBalance(daoTreasure.address, 100_000_000);
+
+      const quorum2 = await ftGovernor.quorum(0);
+
+      expect(quorum1).equals(quorum2);
+    });
+
     it("Verify proposal should be in 'Pending' state when proposal created and voting period not started", async function () {
       const { ftGovernor, creator } = await loadFixture(deployFixture);
       const { proposalId } = await createTextProposal(ftGovernor, creator);
